@@ -11,7 +11,7 @@ const startSound = document.getElementById("startSound");
 const deathSound = document.getElementById("deathSound");
 
 // New audio elements
-const carrotSound = new Audio("carrotSound.mp3");
+const carrotSound = new Audio("mario_coin.mp3");
 const powerUpSound = new Audio("powerUpSound.mp3");
 const monsterKillSound = new Audio("monsterKillSound.mp3");
 
@@ -148,7 +148,7 @@ function updateGame() {
       powerUps.splice(index, 1);
       powerUpSound.play(); // Play power-up sound
       invincible = true;
-      invincibleTimer = 90; // Power-up lasts 1.5 seconds (90 frames at 60 fps)
+      invincibleTimer = 45; // Power-up lasts 1.5 seconds (90 frames at 60 fps)
     }
   });
 
