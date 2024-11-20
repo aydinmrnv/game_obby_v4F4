@@ -17,7 +17,7 @@ const monsterKillSound = new Audio("monsterKillSound.mp3");
 
 let gameRunning = false;
 let invincible = false; // Flag for invincibility
-let invincibleTimer = 0; // Timer to count down the invincibility duration
+let invincibleTimer = 0; // Timer for invincibility duration
 const smiley = { x: canvas.width / 2, y: canvas.height / 2, radius: 20, speed: 5 };
 const enemies = [];
 const carrots = [];
@@ -84,9 +84,11 @@ function spawnPowerUps(count) {
 
 function moveEnemy(enemy) {
   const angle = Math.atan2(smiley.y - enemy.y, smiley.x - enemy.x);
+  const monsterSpeed = invincible ? enemy.speed * 1.5 : enemy.speed; // 50% faster when invincible
+
   if (invincible) {
-    enemy.x -= enemy.speed * Math.cos(angle);
-    enemy.y -= enemy.speed * Math.sin(angle);
+    enemy.x -= monsterSpeed * Math.cos(angle);
+    enemy.y -= monsterSpeed * Math.sin(angle);
   } else {
     enemy.x += enemy.speed * Math.cos(angle);
     enemy.y += enemy.speed * Math.sin(angle);
@@ -146,7 +148,7 @@ function updateGame() {
       powerUps.splice(index, 1);
       powerUpSound.play(); // Play power-up sound
       invincible = true;
-      invincibleTimer = 45; // Last for 5 seconds at 60fps
+      invincibleTimer = 90; // Power-up lasts 1.5 seconds (90 frames at 60 fps)
     }
   });
 
@@ -173,6 +175,9 @@ function updateGame() {
 
   if (invincibleTimer > 0) {
     invincibleTimer--;
+    if (invincibleTimer === 0) {
+      invincible = false; // Deactivate invincibility
+    }
   }
 
   if (score < -1) {
