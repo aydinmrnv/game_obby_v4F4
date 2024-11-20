@@ -10,10 +10,12 @@ const startButton = document.getElementById("startButton");
 const startSound = document.getElementById("startSound");
 const deathSound = document.getElementById("deathSound");
 
+// New audio element for carrot collection
+const carrotSound = new Audio("carrotSound.mp3");
+
 let gameRunning = false;
 let invincible = false; // Flag for invincibility
 let invincibleTimer = 0; // Timer to count down the invincibility duration
-let flashTimer = 0; // Timer for flashing effect
 const smiley = { x: canvas.width / 2, y: canvas.height / 2, radius: 20, speed: 5 };
 const enemies = [];
 const carrots = [];
@@ -33,38 +35,6 @@ function drawCircle(x, y, radius, color) {
   ctx.fillStyle = color;
   ctx.fill();
   ctx.closePath();
-}
-
-function drawEnemy(x, y, radius, isFlashing) {
-  // Flashing effect: alternate between red and blue
-  const enemyColor = isFlashing ? (flashTimer % 30 < 15 ? "blue" : "red") : "red";
-  drawCircle(x, y, radius, enemyColor);
-  
-  // Teeth
-  const toothSize = radius / 5;
-  const teethCount = 6;
-  const angleStep = (Math.PI * 2) / teethCount;
-
-  for (let i = 0; i < teethCount; i++) {
-    const angle = i * angleStep;
-    const toothX = x + Math.cos(angle) * radius * 0.9;
-    const toothY = y + Math.sin(angle) * radius * 0.9;
-
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(toothX, toothY);
-    ctx.lineTo(
-      x + Math.cos(angle + angleStep / 2) * radius * 0.8,
-      y + Math.sin(angle + angleStep / 2) * radius * 0.8
-    );
-    ctx.closePath();
-    ctx.fillStyle = "white";
-    ctx.fill();
-  }
-}
-
-function drawPowerUp(x, y, radius) {
-  drawCircle(x, y, radius, "blue");
 }
 
 function isCollision(x1, y1, r1, x2, y2, r2) {
@@ -111,11 +81,9 @@ function spawnPowerUp() {
 function moveEnemy(enemy) {
   const angle = Math.atan2(smiley.y - enemy.y, smiley.x - enemy.x);
   if (invincible) {
-    // Move the monster away from the player
     enemy.x -= enemy.speed * Math.cos(angle);
     enemy.y -= enemy.speed * Math.sin(angle);
   } else {
-    // Default behavior: move towards the player
     enemy.x += enemy.speed * Math.cos(angle);
     enemy.y += enemy.speed * Math.sin(angle);
   }
@@ -134,114 +102,101 @@ function updateGame() {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw smiley (player)
   drawCircle(smiley.x, smiley.y, smiley.radius, invincible ? "lightgreen" : "green");
 
-  // Draw carrots
+  // Carrots
   carrots.forEach((carrot, index) => {
     drawCircle(carrot.x, carrot.y, carrot.radius, "orange");
 
     if (isCollision(smiley.x, smiley.y, smiley.radius, carrot.x, carrot.y, carrot.radius)) {
       carrots.splice(index, 1);
       score++;
+      carrotSound.play();
 
-      // Spawn a new enemy for every 10 points
       if (score % 10 === 0) {
         spawnNewMonster();
-        if (score % 10 === 0) {
-          spawnPowerUp(); // Spawn power-up every 10 carrots
-        }
+        spawnPowerUp();
       }
     }
   });
 
-  // Check if all carrots are collected
   if (carrots.length === 0) {
     generateCarrots(initialCarrotCount);
   }
 
-  // Draw poops
+  // Poops
   poops.forEach((poop, index) => {
     drawCircle(poop.x, poop.y, poop.radius, "brown");
 
     if (isCollision(smiley.x, smiley.y, smiley.radius, poop.x, poop.y, poop.radius)) {
       poops.splice(index, 1);
-      score -= 5; // Subtract 5 points when hitting a poop
+      score -= 5;
     }
   });
 
-  // Draw power-ups and check for collision with the player
+  // Power-ups
   powerUps.forEach((powerUp, index) => {
-    drawPowerUp(powerUp.x, powerUp.y, powerUp.radius);
+    drawCircle(powerUp.x, powerUp.y, powerUp.radius, "blue");
 
     if (isCollision(smiley.x, smiley.y, smiley.radius, powerUp.x, powerUp.y, powerUp.radius)) {
       powerUps.splice(index, 1);
-      invincible = true; // Activate invincibility
-      invincibleTimer = 45; // Set timer for 5 seconds (300 frames at 60fps)
+      invincible = true;
+      invincibleTimer = 45; // Last for 5 seconds at 60fps
     }
   });
 
-  // Draw enemies and move them
+  // Enemies
   enemies.forEach((enemy, index) => {
-    flashTimer++;
-    drawEnemy(enemy.x, enemy.y, enemy.radius, invincible); // Pass flashing effect during invincibility
+    drawCircle(enemy.x, enemy.y, enemy.radius, invincible ? "lightblue" : "red");
     moveEnemy(enemy);
     dropPoopFromMonster(enemy);
 
-    // Check if collision with enemy occurs and handle invincibility
     if (isCollision(smiley.x, smiley.y, smiley.radius, enemy.x, enemy.y, enemy.radius)) {
       if (invincible) {
-        enemies.splice(index, 1); // Destroy monster if player is invincible
+        enemies.splice(index, 1); // Remove the monster
+        score += 5; // Add 5 points
+        invincible = false; // End invincibility after one kill
       } else {
         deathSound.play();
-        stopMusic();  // Stop the background music
         gameRunning = false;
-        alert("Game Over! Your score: " + score);
+        alert(`Game Over! Your score: ${score}`);
         location.reload();
       }
     }
   });
 
-  // Check for win condition: if invincible and all monsters are dead
-  if (invincible && enemies.length === 0) {
-    alert("You Win! All monsters are dead!");
+  if (invincibleTimer > 0) {
+    invincibleTimer--;
+  }
+
+  if (score < -1) {
     gameRunning = false;
-    stopMusic();
+    alert(`You Lose! Your score: ${score}`);
     location.reload();
   }
 
-  // Display score
-  displayScore();
-
-  // Update invincibility timer
-  if (invincible) {
-    invincibleTimer--;
-    if (invincibleTimer <= 0) {
-      invincible = false; // Deactivate invincibility
-    }
+  if (enemies.length === 0 && score >= 0) {
+    alert("You Win! All monsters are dead!");
+    gameRunning = false;
+    location.reload();
   }
+
+  displayScore();
 
   requestAnimationFrame(updateGame);
 }
 
-// Track mouse movement
 canvas.addEventListener("mousemove", (event) => {
   smiley.x = event.clientX;
   smiley.y = event.clientY;
 });
 
-// Start game
 startButton.addEventListener("click", () => {
   startScreen.style.display = "none";
   startSound.loop = true;
   startSound.play();
   gameRunning = true;
   generateCarrots(initialCarrotCount);
-  spawnNewMonster();  // Initial monster spawn
+  spawnNewMonster();
   updateGame();
 });
-
-function stopMusic() {
-  startSound.pause();
-  startSound.currentTime = 0;
-}
