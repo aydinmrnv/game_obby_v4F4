@@ -119,9 +119,9 @@ function updateGame() {
       score++;
       carrotSound.play();
 
-      if (score % 10 === 0) {
+      if (score % 5 === 0) {
         spawnNewMonster();
-        spawnPowerUps(1); // Spawn two power-ups every 10 points
+        spawnPowerUps(1); // Spawn one power-ups every 5 points
       }
     }
   });
@@ -148,7 +148,7 @@ function updateGame() {
       powerUps.splice(index, 1);
       powerUpSound.play(); // Play power-up sound
       invincible = true;
-      invincibleTimer = 75; // Power-up lasts 1.5 seconds (90 frames at 60 fps)
+      invincibleTimer = 90; // Power-up lasts 1.5 seconds (90 frames at 60 fps)
     }
   });
 
