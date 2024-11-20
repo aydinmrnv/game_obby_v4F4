@@ -148,7 +148,7 @@ function updateGame() {
       powerUps.splice(index, 1);
       powerUpSound.play(); // Play power-up sound
       invincible = true;
-      invincibleTimer = 45; // Power-up lasts 1.5 seconds (90 frames at 60 fps)
+      invincibleTimer = 75; // Power-up lasts 1.5 seconds (90 frames at 60 fps)
     }
   });
 
