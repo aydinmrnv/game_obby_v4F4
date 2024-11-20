@@ -121,7 +121,7 @@ function updateGame() {
 
       if (score % 10 === 0) {
         spawnNewMonster();
-        spawnPowerUps(2); // Spawn two power-ups every 10 points
+        spawnPowerUps(1); // Spawn two power-ups every 10 points
       }
     }
   });
