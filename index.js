@@ -119,9 +119,9 @@ function updateGame() {
       score++;
       carrotSound.play();
 
-      if (score % 5 === 0) {
+      if (score % 10 === 0) {
         spawnNewMonster();
-        spawnPowerUps(1); // Spawn one power-ups every 5 points
+        spawnPowerUps(2); // Spawn one power-ups every 5 points
       }
     }
   });
