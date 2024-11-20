@@ -10,8 +10,10 @@ const startButton = document.getElementById("startButton");
 const startSound = document.getElementById("startSound");
 const deathSound = document.getElementById("deathSound");
 
-// New audio element for carrot collection
+// New audio elements
 const carrotSound = new Audio("carrotSound.mp3");
+const powerUpSound = new Audio("powerUpSound.mp3");
+const monsterKillSound = new Audio("monsterKillSound.mp3");
 
 let gameRunning = false;
 let invincible = false; // Flag for invincibility
@@ -69,13 +71,15 @@ function spawnNewMonster() {
   enemies.push(newMonster);
 }
 
-function spawnPowerUp() {
-  const newPowerUp = {
-    x: randomPosition(canvas.width),
-    y: randomPosition(canvas.height),
-    radius: 15,
-  };
-  powerUps.push(newPowerUp);
+function spawnPowerUps(count) {
+  for (let i = 0; i < count; i++) {
+    const newPowerUp = {
+      x: randomPosition(canvas.width),
+      y: randomPosition(canvas.height),
+      radius: 15,
+    };
+    powerUps.push(newPowerUp);
+  }
 }
 
 function moveEnemy(enemy) {
@@ -115,7 +119,7 @@ function updateGame() {
 
       if (score % 10 === 0) {
         spawnNewMonster();
-        spawnPowerUp();
+        spawnPowerUps(2); // Spawn two power-ups every 10 points
       }
     }
   });
@@ -140,6 +144,7 @@ function updateGame() {
 
     if (isCollision(smiley.x, smiley.y, smiley.radius, powerUp.x, powerUp.y, powerUp.radius)) {
       powerUps.splice(index, 1);
+      powerUpSound.play(); // Play power-up sound
       invincible = true;
       invincibleTimer = 45; // Last for 5 seconds at 60fps
     }
@@ -155,6 +160,7 @@ function updateGame() {
       if (invincible) {
         enemies.splice(index, 1); // Remove the monster
         score += 5; // Add 5 points
+        monsterKillSound.play(); // Play monster kill sound
         invincible = false; // End invincibility after one kill
       } else {
         deathSound.play();
