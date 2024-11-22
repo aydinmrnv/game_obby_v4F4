@@ -10,26 +10,22 @@ const startButton = document.getElementById("startButton");
 const startSound = document.getElementById("startSound");
 const deathSound = document.getElementById("deathSound");
 
-const powerUpSound = new Audio("powerup.mp3");
-const monsterKillSound = new Audio("monsterkill.mp3");
-const carrotSound = new Audio("carrot.mp3");
+// New audio elements
+const carrotSound = new Audio("carrotSound.mp3");
+const powerUpSound = new Audio("powerUpSound.mp3");
+const monsterKillSound = new Audio("monsterKillSound.mp3");
 
 let gameRunning = false;
-let invincible = false;
-let invincibleTimer = 0;
-
+let invincible = false; // Flag for invincibility
+let invincibleTimer = 0; // Timer for invincibility duration
 const smiley = { x: canvas.width / 2, y: canvas.height / 2, radius: 20, speed: 5 };
 const enemies = [];
 const carrots = [];
 const poops = [];
-const powerUps = [];
+const powerUps = []; // Array to store blue power-ups
 const initialCarrotCount = 10;
-
 let poopTimer = 0;
 let score = 0;
-let flashTimer = 0;
-
-let monsterSpawnThreshold = Math.floor(Math.random() * 16) + 2; // Randomly set threshold between 2 and 17
 
 function randomPosition(max) {
   return Math.random() * (max - 50) + 25;
@@ -70,7 +66,7 @@ function spawnNewMonster() {
     y: randomPosition(canvas.height),
     radius: 25,
     speed: 2 + (score / 10) * 0.5,
-    poopTimer: 0,
+    poopTimer: 0, 
   };
   enemies.push(newMonster);
 }
@@ -88,9 +84,11 @@ function spawnPowerUps(count) {
 
 function moveEnemy(enemy) {
   const angle = Math.atan2(smiley.y - enemy.y, smiley.x - enemy.x);
+  const monsterSpeed = invincible ? enemy.speed * 1.5 : enemy.speed; // 50% faster when invincible
+
   if (invincible) {
-    enemy.x -= enemy.speed * 2 * Math.cos(angle); // Move away faster
-    enemy.y -= enemy.speed * 2 * Math.sin(angle);
+    enemy.x -= monsterSpeed * Math.cos(angle);
+    enemy.y -= monsterSpeed * Math.sin(angle);
   } else {
     enemy.x += enemy.speed * Math.cos(angle);
     enemy.y += enemy.speed * Math.sin(angle);
@@ -112,6 +110,7 @@ function updateGame() {
 
   drawCircle(smiley.x, smiley.y, smiley.radius, invincible ? "lightgreen" : "green");
 
+  // Carrots
   carrots.forEach((carrot, index) => {
     drawCircle(carrot.x, carrot.y, carrot.radius, "orange");
 
@@ -120,10 +119,9 @@ function updateGame() {
       score++;
       carrotSound.play();
 
-      if (score % monsterSpawnThreshold === 0) {
+      if (score % 10 === 0) {
         spawnNewMonster();
-        monsterSpawnThreshold = Math.floor(Math.random() * 16) + 2; // Reset threshold
-        spawnPowerUps(2); // Spawn two power-ups every monster spawn
+        spawnPowerUps(2); // Spawn two power-ups every 10 points
       }
     }
   });
@@ -132,6 +130,7 @@ function updateGame() {
     generateCarrots(initialCarrotCount);
   }
 
+  // Poops
   poops.forEach((poop, index) => {
     drawCircle(poop.x, poop.y, poop.radius, "brown");
 
@@ -141,17 +140,19 @@ function updateGame() {
     }
   });
 
+  // Power-ups
   powerUps.forEach((powerUp, index) => {
     drawCircle(powerUp.x, powerUp.y, powerUp.radius, "blue");
 
     if (isCollision(smiley.x, smiley.y, smiley.radius, powerUp.x, powerUp.y, powerUp.radius)) {
       powerUps.splice(index, 1);
-      powerUpSound.play();
+      powerUpSound.play(); // Play power-up sound
       invincible = true;
-      invincibleTimer = 90; // Power-up lasts 1.5 seconds
+      invincibleTimer = 90; // Power-up lasts 1.5 seconds (90 frames at 60 fps)
     }
   });
 
+  // Enemies
   enemies.forEach((enemy, index) => {
     drawCircle(enemy.x, enemy.y, enemy.radius, invincible ? "lightblue" : "red");
     moveEnemy(enemy);
@@ -159,9 +160,9 @@ function updateGame() {
 
     if (isCollision(smiley.x, smiley.y, smiley.radius, enemy.x, enemy.y, enemy.radius)) {
       if (invincible) {
-        enemies.splice(index, 1);
-        score += 5;
-        monsterKillSound.play();
+        enemies.splice(index, 1); // Remove the monster
+        score += 5; // Add 5 points
+        monsterKillSound.play(); // Play monster kill sound
         invincible = false; // End invincibility after one kill
       } else {
         deathSound.play();
